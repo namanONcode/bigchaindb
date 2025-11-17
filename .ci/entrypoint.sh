@@ -7,6 +7,10 @@
 
 set -e -x
 
+# Reinstall the package in editable mode to handle volume-mounted source code
+# This ensures the console scripts can properly import the bigchaindb.commands module
+pip install -q -e /usr/src/app
+
 # Ensure the working directory is in PYTHONPATH for volume-mounted source code
 export PYTHONPATH=/usr/src/app:${PYTHONPATH}
 
