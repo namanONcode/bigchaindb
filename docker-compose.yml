@@ -22,14 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     volumes:
-      - ./bigchaindb:/usr/src/app/bigchaindb
-      - ./tests:/usr/src/app/tests
-      - ./docs:/usr/src/app/docs
-      - ./htmlcov:/usr/src/app/htmlcov
-      - ./setup.py:/usr/src/app/setup.py
-      - ./setup.cfg:/usr/src/app/setup.cfg
-      - ./pytest.ini:/usr/src/app/pytest.ini
-      - ./tox.ini:/usr/src/app/tox.ini
+      - .:/usr/src/app:z
     environment:
       BIGCHAINDB_DATABASE_BACKEND: localmongodb
       BIGCHAINDB_DATABASE_HOST: mongodb
@@ -48,7 +41,13 @@ services:
       interval: 3s
       timeout: 5s
       retries: 3
-    command: '.ci/entrypoint.sh'
+    command: >
+      sh -c "
+      set -e -x &&
+      pip install -q -e /usr/src/app &&
+      export PYTHONPATH=/usr/src/app:$$PYTHONPATH &&
+      bigchaindb -l DEBUG start
+      "
     restart: always
   tendermint:
     image: tendermint/tendermint:v0.31.5
@@ -78,8 +77,8 @@ services:
       context: .
       dockerfile: ./acceptance/python/Dockerfile
     volumes:
-      - ./acceptance/python/docs:/docs
-      - ./acceptance/python/src:/src
+      - ./acceptance/python/docs:/docs:z
+      - ./acceptance/python/src:/src:z
     environment:
       - BIGCHAINDB_ENDPOINT=bigchaindb
 
@@ -95,11 +94,11 @@ services:
       args:
         backend: localmongodb
     volumes:
-      - .:/usr/src/app/
+      - .:/usr/src/app/:z
     command: make -C docs/root html
   vdocs:
     image: nginx
     ports:
       - '33333:80'
     volumes:
-      - ./docs/root/build/html:/usr/share/nginx/html
+      - ./docs/root/build/html:/usr/share/nginx/html:z
