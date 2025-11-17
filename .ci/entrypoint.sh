@@ -7,6 +7,9 @@
 
 set -e -x
 
+# Ensure the working directory is in PYTHONPATH for volume-mounted source code
+export PYTHONPATH=/usr/src/app:${PYTHONPATH}
+
 if [[ ${BIGCHAINDB_CI_ABCI} == 'enable' ]]; then
     sleep 3600
 else
