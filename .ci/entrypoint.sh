@@ -34,11 +34,16 @@ echo "[INFO] PYTHONPATH: $PYTHONPATH"
 echo "[INFO] Checking if MongoDB at $MONGODB_HOST:$MONGODB_PORT is reachable..."
 
 retry_count=0
-while ! nc -z "$MONGODB_HOST" "$MONGODB_PORT" 2>/dev/null; do
+while ! nc -z "$MONGODB_HOST" "$MONGODB_PORT"; do
     retry_count=$((retry_count + 1))
     if [ "$retry_count" -ge "$MAX_RETRIES" ]; then
         echo "[ERROR] Cannot connect to MongoDB at $MONGODB_HOST:$MONGODB_PORT after $MAX_RETRIES attempts."
         echo "[ERROR] Please ensure an external MongoDB server is running and accessible."
+        echo "[ERROR] Check the following:"
+        echo "[ERROR]   - BIGCHAINDB_DATABASE_HOST is set correctly (current: $MONGODB_HOST)"
+        echo "[ERROR]   - BIGCHAINDB_DATABASE_PORT is set correctly (current: $MONGODB_PORT)"
+        echo "[ERROR]   - MongoDB container/server is running"
+        echo "[ERROR]   - Network connectivity between containers"
         exit 1
     fi
     echo "[INFO] Waiting for MongoDB at $MONGODB_HOST:$MONGODB_PORT... (attempt $retry_count/$MAX_RETRIES)"

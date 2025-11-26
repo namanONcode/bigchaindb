@@ -77,7 +77,7 @@ class MongoDBConnection(Connection):
         except pymongo.errors.DuplicateKeyError as exc:
             raise DuplicateKeyError from exc
         except pymongo.errors.OperationFailure as exc:
-            print(f'DETAILS: {exc.details}')
+            logger.error(f'MongoDB operation failed - DETAILS: {exc.details}')
             raise OperationError from exc
 
     def _connect(self):
