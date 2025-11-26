@@ -8,7 +8,7 @@ FROM fedora:41
 LABEL maintainer="namanoncode"
 
 # --------------------------------------------------------
-# Install system dependencies + MongoDB 4.4 from offical repo
+# Install system dependencies + Fedoras own MongoDB packages
 # --------------------------------------------------------
 RUN dnf -y update && \
     dnf -y install \
@@ -28,15 +28,9 @@ RUN dnf -y update && \
         libuuid-devel \
         wget \
         which \
-        jq && \
-    printf "%s\n" \
-"[mongodb-org-4.4]" \
-"name=MongoDB Repository" \
-"baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64/" \
-"gpgcheck=0" \
-"enabled=1" \
-    > /etc/yum.repos.d/mongodb-org-4.4.repo && \
-    dnf -y install mongodb-org && \
+        jq \
+        mongodb-server \
+        mongodb && \
     dnf clean all
 
 # --------------------------------------------------------
@@ -47,8 +41,9 @@ ENV PATH="$PYENV_ROOT/bin:$PATH"
 
 RUN git clone https://github.com/pyenv/pyenv.git $PYENV_ROOT
 
-RUN pyenv install 3.8.18 && \
-    pyenv global 3.8.18
+RUN dnf -y install patch && \
+    $PYENV_ROOT/bin/pyenv install 3.8.18 && \
+    $PYENV_ROOT/bin/pyenv global 3.8.18
 
 ENV PATH="$PYENV_ROOT/versions/3.8.18/bin:$PATH"
 
