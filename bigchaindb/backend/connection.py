@@ -13,7 +13,7 @@ from bigchaindb.backend.utils import get_bigchaindb_config_value, get_bigchaindb
 from bigchaindb.common.exceptions import ConfigurationError
 
 BACKENDS = {
-    'localmongodb': 'bigchaindb.backend.localmongodb.connection.LocalMongoDBConnection',
+    'mongodb': 'bigchaindb.backend.mongodb.connection.MongoDBConnection',
 }
 
 logger = logging.getLogger(__name__)
