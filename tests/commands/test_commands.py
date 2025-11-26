@@ -26,7 +26,7 @@ def test_make_sure_we_dont_remove_any_command():
 
     parser = create_parser()
 
-    assert parser.parse_args(['configure', 'mongodb']).command
+    assert parser.parse_args(['configure', 'localmongodb']).command
     assert parser.parse_args(['show-config']).command
     assert parser.parse_args(['init']).command
     assert parser.parse_args(['drop']).command
@@ -154,7 +154,7 @@ def test_run_configure_when_config_does_not_exist(monkeypatch,
     from bigchaindb.commands.bigchaindb import run_configure
     monkeypatch.setattr('os.path.exists', lambda path: False)
     monkeypatch.setattr('builtins.input', lambda: '\n')
-    args = Namespace(config=None, backend='mongodb', yes=True)
+    args = Namespace(config=None, backend='localmongodb', yes=True)
     return_value = run_configure(args)
     assert return_value is None
 
@@ -181,7 +181,7 @@ def test_run_configure_when_config_does_exist(monkeypatch,
 
 @pytest.mark.skip
 @pytest.mark.parametrize('backend', (
-    'mongodb',
+    'localmongodb',
 ))
 def test_run_configure_with_backend(backend, monkeypatch, mock_write_config):
     import bigchaindb

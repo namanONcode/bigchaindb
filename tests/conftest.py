@@ -48,7 +48,7 @@ def pytest_addoption(parser):
     parser.addoption(
         '--database-backend',
         action='store',
-        default=os.environ.get('BIGCHAINDB_DATABASE_BACKEND', 'mongodb'),
+        default=os.environ.get('BIGCHAINDB_DATABASE_BACKEND', 'localmongodb'),
         help='Defines the backend to use (available: {})'.format(backends),
     )
 

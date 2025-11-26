@@ -318,12 +318,12 @@ def create_parser():
                                           help='Prepare the config file.')
 
     config_parser.add_argument('backend',
-                               choices=['mongodb'],
-                               default='mongodb',
-                               const='mongodb',
+                               choices=['localmongodb'],
+                               default='localmongodb',
+                               const='localmongodb',
                                nargs='?',
                                help='The backend to use. It can only be '
-                               '"mongodb", currently.')
+                               '"localmongodb", currently.')
 
     # parser for managing elections
     election_parser = subparsers.add_parser('election',

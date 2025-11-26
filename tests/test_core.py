@@ -51,7 +51,7 @@ def test_bigchain_class_initialization_with_parameters():
     from bigchaindb.backend import connect
     from bigchaindb.validation import BaseValidationRules
     init_db_kwargs = {
-        'backend': 'mongodb',
+        'backend': 'localmongodb',
         'host': 'this_is_the_db_host',
         'port': 12345,
         'name': 'this_is_the_db_name',

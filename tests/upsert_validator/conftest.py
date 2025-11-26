@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from bigchaindb.backend.mongodb import query
+from bigchaindb.backend.localmongodb import query
 from bigchaindb.upsert_validator import ValidatorElection
 
 

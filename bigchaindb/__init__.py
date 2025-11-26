@@ -18,14 +18,14 @@ from bigchaindb.core import App  # noqa
 
 # The following variable is used by `bigchaindb configure` to
 # prompt the user for database values. We cannot rely on
-# _base_database_mongodb.keys() because dicts are unordered.
+# _base_database_localmongodb.keys() because dicts are unordered.
 # I tried to configure
 
 _database_keys_map = {
-    'mongodb': ('host', 'port', 'name'),
+    'localmongodb': ('host', 'port', 'name'),
 }
 
-_base_database_mongodb = {
+_base_database_localmongodb = {
     'host': 'localhost',
     'port': 27017,
     'name': 'bigchain',
@@ -34,8 +34,8 @@ _base_database_mongodb = {
     'password': None,
 }
 
-_database_mongodb = {
-    'backend': 'mongodb',
+_database_localmongodb = {
+    'backend': 'localmongodb',
     'connection_timeout': 5000,
     'max_tries': 3,
     'ssl': False,
@@ -45,10 +45,10 @@ _database_mongodb = {
     'keyfile_passphrase': None,
     'crlfile': None,
 }
-_database_mongodb.update(_base_database_mongodb)
+_database_localmongodb.update(_base_database_localmongodb)
 
 _database_map = {
-    'mongodb': _database_mongodb,
+    'localmongodb': _database_localmongodb,
 }
 
 config = {
@@ -73,8 +73,8 @@ config = {
         'port': 26657,
         'version': 'v0.31.5',  # look for __tm_supported_versions__
     },
-    # Using mongodb backend (external MongoDB server required)
-    'database': _database_map['mongodb'],
+    # FIXME: hardcoding to localmongodb for now
+    'database': _database_map['localmongodb'],
     'log': {
         'file': log_config['handlers']['file']['filename'],
         'error_file': log_config['handlers']['errors']['filename'],
