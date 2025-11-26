@@ -28,9 +28,10 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/src/app
 COPY . /usr/src/app
 
-# Install BigchainDB
-RUN pip3 install --upgrade pip setuptools wheel && \
-    pip3 install -e .
+# Upgrade pip first, then use python3 -m pip for reliable access to new pip
+# This fixes packaging.version.InvalidVersion errors with older pip versions
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install -e .
 
 ENV PYTHONPATH=/usr/src/app
 
