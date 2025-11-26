@@ -19,7 +19,7 @@ from bigchaindb.utils import Lazy
 logger = logging.getLogger(__name__)
 
 
-class LocalMongoDBConnection(Connection):
+class MongoDBConnection(Connection):
 
     def __init__(self, replicaset=None, ssl=None, login=None, password=None,
                  ca_cert=None, certfile=None, keyfile=None,

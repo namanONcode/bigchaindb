@@ -175,7 +175,7 @@ spec:
               name: vars
               key: mongodb-backend-port
         - name: BIGCHAINDB_DATABASE_BACKEND
-          value: "localmongodb"
+          value: "mongodb"
         - name: BIGCHAINDB_DATABASE_NAME
           valueFrom:
             configMapKeyRef:

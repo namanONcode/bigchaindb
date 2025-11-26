@@ -10,7 +10,7 @@ import random
 from abci import types_v0_31_5 as types
 
 from bigchaindb import App
-from bigchaindb.backend.localmongodb import query
+from bigchaindb.backend.mongodb import query
 from bigchaindb.common.crypto import generate_key_pair
 from bigchaindb.core import (CodeTypeOk,
                              CodeTypeError,

@@ -34,7 +34,7 @@
 - name: Start BigchainDB
   shell: nohup bigchaindb -l DEBUG start > /tmp/bigchaindb_log_$(date +%Y%m%d_%H%M%S) 2>&1 &
   environment:
-    BIGCHAINDB_DATABASE_BACKEND: "localmongodb"
+    BIGCHAINDB_DATABASE_BACKEND: "mongodb"
     BIGCHAINDB_DATABASE_HOST: "127.0.0.1"
     BIGCHAINDB_DATABASE_PORT: "27017"
     BIGCHAINDB_SERVER_BIND: "0.0.0.0:9984"

@@ -31,7 +31,7 @@ distribution_major: "{{ ansible_distribution_major_version }}"
 directories:
   - /data
 
-backend_db: localmongodb #[localmongodb]
+backend_db: mongodb #[mongodb]
 
 bigchaindb_server_bind: "0.0.0.0:9984"
 

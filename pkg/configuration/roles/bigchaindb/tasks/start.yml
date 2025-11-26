@@ -13,7 +13,7 @@
     path: "{{ home_dir }}/bigchaindb"
     nocache: yes
     buildargs:
-      backend: localmongodb
+      backend: mongodb
   when: stack_type|lower == "docker" or stack_type|lower == "cloud"
   tags: [bigchaindb]
 
@@ -27,7 +27,7 @@
     networks:
       - name: "{{ bigchaindb_docker_net }}"
     env:
-      BIGCHAINDB_DATABASE_BACKEND: "localmongodb"
+      BIGCHAINDB_DATABASE_BACKEND: "mongodb"
       BIGCHAINDB_DATABASE_HOST: "{{ mongodb_docker_name }}{{ item }}"
       BIGCHAINDB_DATABASE_PORT: "27017"
       BIGCHAINDB_SERVER_BIND: "0.0.0.0:9984"

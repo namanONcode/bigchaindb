@@ -1,14 +1,13 @@
-ARG python_version=3.6
+ARG python_version=3.11
 FROM python:${python_version}
 LABEL maintainer "contact@ipdb.global"
 
 RUN apt-get update \
-    && apt-get install -y git \
+    && apt-get install -y git netcat-openbsd \
     && pip install -U pip \
     && apt-get autoremove \
     && apt-get clean
 
-ARG backend
 ARG abci_status
 
 # When developing with Python in a docker container, we are using PYTHONBUFFERED
@@ -16,7 +15,9 @@ ARG abci_status
 ENV PYTHONUNBUFFERED 0
 
 ENV BIGCHAINDB_DATABASE_PORT 27017
-ENV BIGCHAINDB_DATABASE_BACKEND $backend
+ENV BIGCHAINDB_DATABASE_BACKEND mongodb
+ENV BIGCHAINDB_DATABASE_HOST localhost
+ENV BIGCHAINDB_DATABASE_NAME bigchain
 ENV BIGCHAINDB_SERVER_BIND 0.0.0.0:9984
 ENV BIGCHAINDB_WSSERVER_HOST 0.0.0.0
 ENV BIGCHAINDB_WSSERVER_SCHEME ws
@@ -32,4 +33,3 @@ RUN mkdir -p /usr/src/app
 COPY . /usr/src/app/
 WORKDIR /usr/src/app
 RUN pip install -e .[dev]
-RUN bigchaindb -y configure
