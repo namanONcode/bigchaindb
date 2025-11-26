@@ -9,7 +9,7 @@ import random
 
 from functools import singledispatch
 
-from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+from bigchaindb.backend.mongodb.connection import LocalMongoDBConnection
 from bigchaindb.backend.schema import TABLES
 from bigchaindb.common import crypto
 from bigchaindb.common.transaction_mode_types import BROADCAST_TX_COMMIT

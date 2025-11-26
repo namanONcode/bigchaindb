@@ -1,62 +1,54 @@
 #!/bin/bash
-# BigchainDB Entrypoint (localmongodb backend only)
+# BigchainDB Entrypoint (external MongoDB backend)
 # SPDX-License-Identifier: Apache-2.0
 #
-# This entrypoint ensures BigchainDB ALWAYS uses the localmongodb backend
-# by removing any stale config files and regenerating fresh config at startup.
+# This entrypoint validates MongoDB connectivity and starts BigchainDB
+# with an external MongoDB backend.
 
 set -e
 
-echo "===== BigchainDB Entrypoint (localmongodb) ====="
+echo "===== BigchainDB Entrypoint (External MongoDB) ====="
 
 # --------------------------------------------------------
-# 1. Remove all existing config files to prevent stale configs
-#    This ensures BigchainDB won't read old configs with "mongodb" backend
+# 1. Environment configuration defaults
 # --------------------------------------------------------
-echo "[INFO] Removing any stale BigchainDB config files..."
+MONGODB_HOST="${BIGCHAINDB_DATABASE_HOST:-localhost}"
+MONGODB_PORT="${BIGCHAINDB_DATABASE_PORT:-27017}"
+MONGODB_NAME="${BIGCHAINDB_DATABASE_NAME:-bigchain}"
+MAX_RETRIES="${BIGCHAINDB_MONGODB_MAX_RETRIES:-30}"
+RETRY_INTERVAL="${BIGCHAINDB_MONGODB_RETRY_INTERVAL:-2}"
 
-# List of possible config file locations to clean up
-CONFIG_PATHS=(
-    "/root/.bigchaindb"
-    "/usr/src/app/bigchaindb/.bigchaindb"
-    "/data/.bigchaindb"
-    "$HOME/.bigchaindb"
-)
-
-for config_path in "${CONFIG_PATHS[@]}"; do
-    rm -f "$config_path"
-done
-
-echo "[INFO] Stale config files removed (if any existed)"
+echo "[INFO] MongoDB Host: $MONGODB_HOST"
+echo "[INFO] MongoDB Port: $MONGODB_PORT"
+echo "[INFO] MongoDB Database: $MONGODB_NAME"
 
 # --------------------------------------------------------
-# 2. Prepare data directory for localmongodb
-#    Note: localmongodb backend uses MongoDB internally but does NOT
-#    require a separate MongoDB server on port 27017
-# --------------------------------------------------------
-mkdir -p /data/db
-chmod -R 777 /data || true
-echo "[INFO] Data directory prepared at /data"
-
-# --------------------------------------------------------
-# 3. Set up Python environment
+# 2. Set up Python environment
 # --------------------------------------------------------
 export PYTHONPATH="/usr/src/app:$PYTHONPATH"
 echo "[INFO] PYTHONPATH: $PYTHONPATH"
 
 # --------------------------------------------------------
-# 4. Generate fresh BigchainDB config with localmongodb backend
-#    The -y flag auto-accepts defaults, ensuring no prompts
-#    Config is written to the path specified by BIGCHAINDB_CONFIG_PATH
+# 3. Wait for MongoDB to be available
 # --------------------------------------------------------
-echo "[INFO] Generating fresh BigchainDB config with localmongodb backend..."
-export BIGCHAINDB_CONFIG_PATH="${BIGCHAINDB_CONFIG_PATH:-/data/.bigchaindb}"
-bigchaindb -y configure localmongodb
-echo "[INFO] Config generated at: $BIGCHAINDB_CONFIG_PATH"
-echo "[INFO] Using backend: localmongodb"
+echo "[INFO] Waiting for MongoDB at $MONGODB_HOST:$MONGODB_PORT..."
+
+retries=0
+until nc -z "$MONGODB_HOST" "$MONGODB_PORT" 2>/dev/null; do
+    retries=$((retries + 1))
+    if [ $retries -ge $MAX_RETRIES ]; then
+        echo "[ERROR] MongoDB at $MONGODB_HOST:$MONGODB_PORT is not reachable after $MAX_RETRIES attempts"
+        echo "[ERROR] Please ensure MongoDB is running and accessible"
+        exit 1
+    fi
+    echo "[INFO] Attempt $retries/$MAX_RETRIES - MongoDB not ready, waiting ${RETRY_INTERVAL}s..."
+    sleep $RETRY_INTERVAL
+done
+
+echo "[INFO] MongoDB is reachable at $MONGODB_HOST:$MONGODB_PORT"
 
 # --------------------------------------------------------
-# 5. Optional ABCI testing mode (for CI)
+# 4. Optional ABCI testing mode (for CI)
 # --------------------------------------------------------
 if [ "$BIGCHAINDB_CI_ABCI" = "enable" ]; then
     echo "[INFO] ABCI CI mode requested — pausing for CI"
@@ -65,11 +57,9 @@ if [ "$BIGCHAINDB_CI_ABCI" = "enable" ]; then
 fi
 
 # --------------------------------------------------------
-# 6. Start BigchainDB node
-#    The localmongodb backend handles database internally
-#    No external MongoDB connection to port 27017 needed
+# 5. Start BigchainDB node
 # --------------------------------------------------------
 echo "[INFO] Starting BigchainDB node..."
-echo "[INFO] External MongoDB server not needed (localmongodb backend handles database internally)"
+echo "[INFO] Using external MongoDB backend at $MONGODB_HOST:$MONGODB_PORT"
 echo "[INFO] BigchainDB will start on ${BIGCHAINDB_SERVER_BIND:-0.0.0.0:9984}"
 exec bigchaindb -l DEBUG start

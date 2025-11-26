@@ -39,10 +39,10 @@ def mongodb_connection():
 def test_get_connection_returns_the_correct_instance(db_host, db_port):
     from bigchaindb.backend import connect
     from bigchaindb.backend.connection import Connection
-    from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+    from bigchaindb.backend.mongodb.connection import MongoDBConnection
 
     config = {
-        'backend': 'localmongodb',
+        'backend': 'mongodb',
         'host': db_host,
         'port': db_port,
         'name': 'test',
@@ -51,7 +51,7 @@ def test_get_connection_returns_the_correct_instance(db_host, db_port):
 
     conn = connect(**config)
     assert isinstance(conn, Connection)
-    assert isinstance(conn, LocalMongoDBConnection)
+    assert isinstance(conn, MongoDBConnection)
     assert conn.conn._topology_settings.replica_set_name == config['replicaset']
 
 
@@ -102,8 +102,8 @@ def test_connection_run_errors():
 @mock.patch('pymongo.database.Database.authenticate')
 def test_connection_with_credentials(mock_authenticate):
     import bigchaindb
-    from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
-    conn = LocalMongoDBConnection(host=bigchaindb.config['database']['host'],
+    from bigchaindb.backend.mongodb.connection import MongoDBConnection
+    conn = MongoDBConnection(host=bigchaindb.config['database']['host'],
                                   port=bigchaindb.config['database']['port'],
                                   login='theplague',
                                   password='secret')

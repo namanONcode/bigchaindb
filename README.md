@@ -21,6 +21,102 @@ so show the latest GitHub release instead.
 
 BigchainDB is the blockchain database. This repository is for _BigchainDB Server_.
 
+## Docker Image
+
+This fork uses **Ubuntu 22.04** as the base image and requires an **external MongoDB** server. The embedded MongoDB support has been removed.
+
+### Requirements
+
+- **External MongoDB Server**: BigchainDB no longer manages MongoDB internally. You must provide an external MongoDB instance (version 4.4+ recommended).
+- **Tendermint**: Required for consensus (v0.31.5).
+
+### Environment Variables
+
+Configure BigchainDB using these environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BIGCHAINDB_DATABASE_BACKEND` | Database backend type | `mongodb` |
+| `BIGCHAINDB_DATABASE_HOST` | MongoDB host | `localhost` |
+| `BIGCHAINDB_DATABASE_PORT` | MongoDB port | `27017` |
+| `BIGCHAINDB_DATABASE_NAME` | MongoDB database name | `bigchain` |
+| `BIGCHAINDB_SERVER_BIND` | BigchainDB API bind address | `0.0.0.0:9984` |
+| `BIGCHAINDB_TENDERMINT_HOST` | Tendermint host | `localhost` |
+| `BIGCHAINDB_TENDERMINT_PORT` | Tendermint port | `26657` |
+
+### Running with Docker
+
+```bash
+# Run BigchainDB with an external MongoDB
+docker run -d \
+  -e BIGCHAINDB_DATABASE_HOST=your-mongodb-host \
+  -e BIGCHAINDB_DATABASE_PORT=27017 \
+  -e BIGCHAINDB_DATABASE_NAME=bigchain \
+  -p 9984:9984 \
+  bigchaindb
+```
+
+### Running with Docker Compose
+
+The included `docker-compose.yml` sets up a complete environment with MongoDB and Tendermint:
+
+```bash
+git clone https://github.com/namanONcode/bigchaindb.git
+cd bigchaindb
+docker-compose up -d
+```
+
+This will start:
+- **MongoDB** on port 27017
+- **Tendermint** on ports 26656, 26657
+- **BigchainDB** on port 9984
+
+BigchainDB should be reachable at `http://localhost:9984/`.
+
+### Example docker-compose.yml
+
+```yaml
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  bigchaindb:
+    image: bigchaindb
+    depends_on:
+      - mongodb
+      - tendermint
+    environment:
+      BIGCHAINDB_DATABASE_BACKEND: mongodb
+      BIGCHAINDB_DATABASE_HOST: mongodb
+      BIGCHAINDB_DATABASE_PORT: 27017
+      BIGCHAINDB_DATABASE_NAME: bigchain
+      BIGCHAINDB_SERVER_BIND: 0.0.0.0:9984
+      BIGCHAINDB_TENDERMINT_HOST: tendermint
+      BIGCHAINDB_TENDERMINT_PORT: 26657
+    ports:
+      - "9984:9984"
+    restart: always
+
+  tendermint:
+    image: tendermint/tendermint:v0.31.5
+    entrypoint: ''
+    ports:
+      - "26656:26656"
+      - "26657:26657"
+    command: sh -c "tendermint init && tendermint node --consensus.create_empty_blocks=false --proxy_app=tcp://bigchaindb:26658"
+    restart: always
+
+volumes:
+  mongodb_data:
+```
+
 ## The Basics
 
 * [Try the Quickstart](https://docs.bigchaindb.com/projects/server/en/latest/quickstart.html)
@@ -32,7 +128,7 @@ BigchainDB is the blockchain database. This repository is for _BigchainDB Server
 Running and testing the latest version of BigchainDB Server is easy. Make sure you have a recent version of [Docker Compose](https://docs.docker.com/compose/install/) installed. When you are ready, fire up a terminal and run:
 
 ```text
-git clone https://github.com/bigchaindb/bigchaindb.git
+git clone https://github.com/namanONcode/bigchaindb.git
 cd bigchaindb
 make run
 ```
