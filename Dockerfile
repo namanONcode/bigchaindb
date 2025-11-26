@@ -54,9 +54,13 @@ ENV BIGCHAINDB_TENDERMINT_PORT=26657
 COPY .ci/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Exposed Ports
-EXPOSE 9984       # BigchainDB API
-EXPOSE 26657      # Tendermint RPC
-EXPOSE 26658      # Tendermint ABCI
+# Expose BigchainDB & Tendermint ports
+# BigchainDB API
+EXPOSE 9984
+# Tendermint RPC
+EXPOSE 26657
+# Tendermint ABCI
+EXPOSE 26658
 
 ENTRYPOINT ["/entrypoint.sh"]
+
