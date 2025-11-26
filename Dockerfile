@@ -1,14 +1,10 @@
 # BigchainDB Docker Image
 # Requires external MongoDB server connection
-#
-# Ubuntu 20.04 Base (Python 3.8 default)
-# Note: Using Ubuntu 20.04 because bigchaindb-abci==1.0.7 depends on gevent==21.1.2
-# which only supports Python 2.7-3.9
+
 FROM ubuntu:20.04
 
 LABEL maintainer="namanoncode"
 
-# Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
@@ -22,21 +18,27 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     curl \
     netcat-openbsd \
+    tar \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Tendermint
+RUN curl -L https://github.com/tendermint/tendermint/releases/download/v0.34.24/tendermint_0.34.24_linux_amd64.tar.gz \
+    -o /tmp/tm.tar.gz && \
+    tar -xvf /tmp/tm.tar.gz -C /usr/local/bin/ --strip-components=1 && \
+    chmod +x /usr/local/bin/tendermint && \
+    rm /tmp/tm.tar.gz
 
 # BigchainDB source
 WORKDIR /usr/src/app
 COPY . /usr/src/app
 
-# Upgrade pip first, then use python3 -m pip for reliable access to new pip
-# This fixes packaging.version.InvalidVersion errors with older pip versions
+# Install BigchainDB
 RUN python3 -m pip install --upgrade pip setuptools wheel && \
     python3 -m pip install -e .
 
 ENV PYTHONPATH=/usr/src/app
 
 # BigchainDB environment configuration
-# Requires external MongoDB server - configure via environment variables
 ENV PYTHONUNBUFFERED=0
 ENV BIGCHAINDB_DATABASE_BACKEND=mongodb
 ENV BIGCHAINDB_DATABASE_HOST=localhost
@@ -44,11 +46,17 @@ ENV BIGCHAINDB_DATABASE_PORT=27017
 ENV BIGCHAINDB_DATABASE_NAME=bigchain
 ENV BIGCHAINDB_SERVER_BIND=0.0.0.0:9984
 
-# Copy and set up entrypoint
+# Tendermint host + port
+ENV BIGCHAINDB_TENDERMINT_HOST=tendermint
+ENV BIGCHAINDB_TENDERMINT_PORT=26657
+
+# Copy custom entrypoint
 COPY .ci/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# BigchainDB API port
-EXPOSE 9984
+# Exposed Ports
+EXPOSE 9984       # BigchainDB API
+EXPOSE 26657      # Tendermint RPC
+EXPOSE 26658      # Tendermint ABCI
 
 ENTRYPOINT ["/entrypoint.sh"]
