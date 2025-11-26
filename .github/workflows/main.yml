@@ -1,36 +1,67 @@
-name: Build & Push BigchainDB (Fedora)
+# --------------------------------------------------------
+# Fedora-based BigchainDB image with Python 3.8 via pyenv
+# Fully compatible with SELinux, Fedora, Kubernetes, K3s
+# --------------------------------------------------------
 
-on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
+FROM fedora:41
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+LABEL maintainer="namanoncode"
 
-    steps:
-      - name: Checkout BigchainDB repo
-        uses: actions/checkout@v4
+# --- System dependencies
+RUN dnf -y update && \
+    dnf -y install \
+        git \
+        gcc \
+        gcc-c++ \
+        make \
+        openssl-devel \
+        bzip2 \
+        bzip2-devel \
+        libffi-devel \
+        zlib-devel \
+        readline-devel \
+        sqlite-devel \
+        tk-devel \
+        xz-devel \
+        libuuid-devel \
+        wget \
+        which \
+        jq && \
+    dnf clean all
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+# --- Install pyenv
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="$PYENV_ROOT/bin:$PATH"
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+RUN git clone https://github.com/pyenv/pyenv.git $PYENV_ROOT
 
-      - name: Build and Push Fedora BigchainDB Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            namanoncode/bigchaindb:latest
-            namanoncode/bigchaindb:${{ github.sha }}
-          cache-from: type=registry,ref=namanoncode/bigchaindb:cache
-          cache-to: type=registry,ref=namanoncode/bigchaindb:cache,mode=max
+# --- Install Python 3.8 (supported by BigchainDB)
+RUN pyenv install 3.8.18 && \
+    pyenv global 3.8.18
+
+ENV PATH="$PYENV_ROOT/versions/3.8.18/bin:$PATH"
+
+# --- Set workdir
+WORKDIR /usr/src/app
+
+COPY . /usr/src/app
+
+# --- Install BigchainDB and dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -e .
+
+# --- Add PYTHONPATH for your SELinux volume usage
+ENV PYTHONPATH=/usr/src/app:$PYTHONPATH
+
+# --- Use your fixed entrypoint script
+COPY .ci/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+VOLUME ["/data", "/certs"]
+
+ENV PYTHONUNBUFFERED=0
+ENV BIGCHAINDB_CONFIG_PATH=/data/.bigchaindb
+ENV BIGCHAINDB_SERVER_BIND=0.0.0.0:9984
+EXPOSE 9984
+
+ENTRYPOINT ["/entrypoint.sh"]
