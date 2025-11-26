@@ -24,9 +24,11 @@ RUN apt-get update && apt-get install -y \
 # Install Tendermint
 RUN curl -L https://github.com/tendermint/tendermint/releases/download/v0.34.24/tendermint_0.34.24_linux_amd64.tar.gz \
     -o /tmp/tm.tar.gz && \
-    tar -xvf /tmp/tm.tar.gz -C /usr/local/bin/ --strip-components=1 && \
+    tar -xvf /tmp/tm.tar.gz && \
+    mv tendermint /usr/local/bin/tendermint && \
     chmod +x /usr/local/bin/tendermint && \
     rm /tmp/tm.tar.gz
+
 
 # BigchainDB source
 WORKDIR /usr/src/app
