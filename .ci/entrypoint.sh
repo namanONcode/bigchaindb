@@ -14,10 +14,19 @@ echo "===== BigchainDB Entrypoint (localmongodb) ====="
 #    This ensures BigchainDB won't read old configs with "mongodb" backend
 # --------------------------------------------------------
 echo "[INFO] Removing any stale BigchainDB config files..."
-rm -f /root/.bigchaindb
-rm -f /usr/src/app/bigchaindb/.bigchaindb
-rm -f /data/.bigchaindb
-rm -f "$HOME/.bigchaindb"
+
+# List of possible config file locations to clean up
+CONFIG_PATHS=(
+    "/root/.bigchaindb"
+    "/usr/src/app/bigchaindb/.bigchaindb"
+    "/data/.bigchaindb"
+    "$HOME/.bigchaindb"
+)
+
+for config_path in "${CONFIG_PATHS[@]}"; do
+    rm -f "$config_path"
+done
+
 echo "[INFO] Stale config files removed (if any existed)"
 
 # --------------------------------------------------------
@@ -61,6 +70,6 @@ fi
 #    No external MongoDB connection to port 27017 needed
 # --------------------------------------------------------
 echo "[INFO] Starting BigchainDB node..."
-echo "[INFO] MongoDB disabled (not needed for localmongodb backend)"
+echo "[INFO] External MongoDB server not needed (localmongodb backend handles database internally)"
 echo "[INFO] BigchainDB will start on ${BIGCHAINDB_SERVER_BIND:-0.0.0.0:9984}"
 exec bigchaindb -l DEBUG start
