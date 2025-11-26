@@ -1,8 +1,10 @@
 # BigchainDB Docker Image
 # Requires external MongoDB server connection
 #
-# Ubuntu 22.04 Base
-FROM ubuntu:22.04
+# Ubuntu 20.04 Base (Python 3.8 default)
+# Note: Using Ubuntu 20.04 because bigchaindb-abci==1.0.7 depends on gevent==21.1.2
+# which only supports Python 2.7-3.9
+FROM ubuntu:20.04
 
 LABEL maintainer="namanoncode"
 
@@ -11,9 +13,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3.11 \
-    python3.11-dev \
-    python3.11-venv \
+    python3 \
+    python3-dev \
+    python3-venv \
     python3-pip \
     build-essential \
     libssl-dev \
@@ -21,10 +23,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
-
-# Set Python 3.11 as the default python
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
-    && update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
 # BigchainDB source
 WORKDIR /usr/src/app

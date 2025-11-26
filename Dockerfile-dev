@@ -1,4 +1,6 @@
-ARG python_version=3.11
+# Note: Using Python 3.8 to match Ubuntu 20.04 default and because bigchaindb-abci==1.0.7
+# depends on gevent==21.1.2 which only supports Python 2.7-3.9
+ARG python_version=3.8
 FROM python:${python_version}
 LABEL maintainer "contact@ipdb.global"
 
