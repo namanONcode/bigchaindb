@@ -9,7 +9,7 @@ import random
 
 from functools import singledispatch
 
-from bigchaindb.backend.mongodb.connection import LocalMongoDBConnection
+from bigchaindb.backend.mongodb.connection import MongoDBConnection
 from bigchaindb.backend.schema import TABLES
 from bigchaindb.common import crypto
 from bigchaindb.common.transaction_mode_types import BROADCAST_TX_COMMIT
@@ -22,8 +22,8 @@ def flush_db(connection, dbname):
     raise NotImplementedError
 
 
-@flush_db.register(LocalMongoDBConnection)
-def flush_localmongo_db(connection, dbname):
+@flush_db.register(MongoDBConnection)
+def flush_mongo_db(connection, dbname):
     for t in TABLES:
         getattr(connection.conn[dbname], t).delete_many({})
 
