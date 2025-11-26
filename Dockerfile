@@ -15,14 +15,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # -----------------------------------------
-# Install Tendermint v0.22.8 (BigchainDB-compatible)
+# Install Tendermint v0.22.0 (only binary that exists)
 # -----------------------------------------
-RUN curl -L https://github.com/tendermint/tendermint/releases/download/v0.22.8/tendermint_0.22.8_linux_amd64.tar.gz \
-    -o /tmp/tm.tar.gz && \
-    tar -xvf /tmp/tm.tar.gz -C /tmp && \
-    mv /tmp/tendermint /usr/local/bin/tendermint && \
+RUN apt-get update && apt-get install -y unzip && \
+    curl -L https://github.com/tendermint/tendermint/releases/download/v0.22.0/tendermint_0.22.0_linux_amd64.zip \
+    -o /tmp/tm.zip && \
+    unzip /tmp/tm.zip -d /tmp/tm && \
+    mv /tmp/tm/tendermint /usr/local/bin/tendermint && \
     chmod +x /usr/local/bin/tendermint && \
-    rm -rf /tmp/tm.tar.gz /tmp/tendermint
+    rm -rf /tmp/tm.zip /tmp/tm
+
 
 # -----------------------------------------
 # BigchainDB source
