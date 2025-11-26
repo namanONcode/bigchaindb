@@ -12,7 +12,7 @@ from pymongo.errors import CollectionInvalid
 
 from bigchaindb import backend
 from bigchaindb.backend.utils import module_dispatch_registrar
-from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+from bigchaindb.backend.mongodb.connection import MongoDBConnection
 
 
 logger = logging.getLogger(__name__)
@@ -59,14 +59,14 @@ INDEXES = {
 }
 
 
-@register_schema(LocalMongoDBConnection)
+@register_schema(MongoDBConnection)
 def create_database(conn, dbname):
     logger.info('Create database `%s`.', dbname)
     # TODO: read and write concerns can be declared here
     conn.conn.get_database(dbname)
 
 
-@register_schema(LocalMongoDBConnection)
+@register_schema(MongoDBConnection)
 def create_tables(conn, dbname):
     for table_name in backend.schema.TABLES:
         # create the table
@@ -85,6 +85,6 @@ def create_indexes(conn, dbname, collection, indexes):
         conn.conn[dbname][collection].create_index(fields, **kwargs)
 
 
-@register_schema(LocalMongoDBConnection)
+@register_schema(MongoDBConnection)
 def drop_database(conn, dbname):
     conn.conn.drop_database(dbname)

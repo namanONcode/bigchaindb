@@ -10,26 +10,26 @@ from pymongo import DESCENDING
 from bigchaindb import backend
 from bigchaindb.backend.exceptions import DuplicateKeyError
 from bigchaindb.backend.utils import module_dispatch_registrar
-from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+from bigchaindb.backend.mongodb.connection import MongoDBConnection
 from bigchaindb.common.transaction import Transaction
 
 register_query = module_dispatch_registrar(backend.query)
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_transactions(conn, signed_transactions):
     return conn.run(conn.collection('transactions')
                     .insert_many(signed_transactions))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_transaction(conn, transaction_id):
     return conn.run(
         conn.collection('transactions')
         .find_one({'id': transaction_id}, {'_id': 0}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_transactions(conn, transaction_ids):
     try:
         return conn.run(
@@ -40,14 +40,14 @@ def get_transactions(conn, transaction_ids):
         pass
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_metadatas(conn, metadata):
     return conn.run(
         conn.collection('metadata')
         .insert_many(metadata, ordered=False))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_metadata(conn, transaction_ids):
     return conn.run(
         conn.collection('metadata')
@@ -55,7 +55,7 @@ def get_metadata(conn, transaction_ids):
               projection={'_id': False}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_asset(conn, asset):
     try:
         return conn.run(
@@ -65,14 +65,14 @@ def store_asset(conn, asset):
         pass
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_assets(conn, assets):
     return conn.run(
         conn.collection('assets')
         .insert_many(assets, ordered=False))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_asset(conn, asset_id):
     try:
         return conn.run(
@@ -82,7 +82,7 @@ def get_asset(conn, asset_id):
         pass
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_assets(conn, asset_ids):
     return conn.run(
         conn.collection('assets')
@@ -90,7 +90,7 @@ def get_assets(conn, asset_ids):
               projection={'_id': False}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_spent(conn, transaction_id, output):
     query = {'inputs':
              {'$elemMatch':
@@ -102,7 +102,7 @@ def get_spent(conn, transaction_id, output):
             .find(query, {'_id': 0}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_latest_block(conn):
     return conn.run(
         conn.collection('blocks')
@@ -110,7 +110,7 @@ def get_latest_block(conn):
                   sort=[('height', DESCENDING)]))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_block(conn, block):
     try:
         return conn.run(
@@ -120,7 +120,7 @@ def store_block(conn, block):
         pass
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_txids_filtered(conn, asset_id, operation=None, last_tx=None):
 
     match = {
@@ -137,7 +137,7 @@ def get_txids_filtered(conn, asset_id, operation=None, last_tx=None):
     return (elem['id'] for elem in cursor)
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def text_search(conn, search, *, language='english', case_sensitive=False,
                 diacritic_sensitive=False, text_score=False, limit=0, table='assets'):
     cursor = conn.run(
@@ -162,7 +162,7 @@ def _remove_text_score(asset):
     return asset
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_owned_ids(conn, owner):
     cursor = conn.run(
         conn.collection('transactions').aggregate([
@@ -172,7 +172,7 @@ def get_owned_ids(conn, owner):
     return cursor
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_spending_transactions(conn, inputs):
     transaction_ids = [i['transaction_id'] for i in inputs]
     output_indexes = [i['output_index'] for i in inputs]
@@ -189,7 +189,7 @@ def get_spending_transactions(conn, inputs):
     return cursor
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_block(conn, block_id):
     return conn.run(
         conn.collection('blocks')
@@ -197,7 +197,7 @@ def get_block(conn, block_id):
                   projection={'_id': False}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_block_with_transaction(conn, txid):
     return conn.run(
         conn.collection('blocks')
@@ -205,14 +205,14 @@ def get_block_with_transaction(conn, txid):
               projection={'_id': False, 'height': True}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def delete_transactions(conn, txn_ids):
     conn.run(conn.collection('assets').delete_many({'id': {'$in': txn_ids}}))
     conn.run(conn.collection('metadata').delete_many({'id': {'$in': txn_ids}}))
     conn.run(conn.collection('transactions').delete_many({'id': {'$in': txn_ids}}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_unspent_outputs(conn, *unspent_outputs):
     if unspent_outputs:
         try:
@@ -227,7 +227,7 @@ def store_unspent_outputs(conn, *unspent_outputs):
             pass
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def delete_unspent_outputs(conn, *unspent_outputs):
     if unspent_outputs:
         return conn.run(
@@ -242,7 +242,7 @@ def delete_unspent_outputs(conn, *unspent_outputs):
         )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_unspent_outputs(conn, *, query=None):
     if query is None:
         query = {}
@@ -250,7 +250,7 @@ def get_unspent_outputs(conn, *, query=None):
                                                   projection={'_id': False}))
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_pre_commit_state(conn, state):
     return conn.run(
         conn.collection('pre_commit')
@@ -258,12 +258,12 @@ def store_pre_commit_state(conn, state):
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_pre_commit_state(conn):
     return conn.run(conn.collection('pre_commit').find_one())
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_validator_set(conn, validators_update):
     height = validators_update['height']
     return conn.run(
@@ -275,14 +275,14 @@ def store_validator_set(conn, validators_update):
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def delete_validator_set(conn, height):
     return conn.run(
         conn.collection('validators').delete_many({'height': height})
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_election(conn, election_id, height, is_concluded):
     return conn.run(
         conn.collection('elections').replace_one(
@@ -296,21 +296,21 @@ def store_election(conn, election_id, height, is_concluded):
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_elections(conn, elections):
     return conn.run(
         conn.collection('elections').insert_many(elections)
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def delete_elections(conn, height):
     return conn.run(
         conn.collection('elections').delete_many({'height': height})
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_validator_set(conn, height=None):
     query = {}
     if height is not None:
@@ -326,7 +326,7 @@ def get_validator_set(conn, height=None):
     return next(cursor, None)
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_election(conn, election_id):
     query = {'election_id': election_id}
 
@@ -337,7 +337,7 @@ def get_election(conn, election_id):
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_asset_tokens_for_public_key(conn, asset_id, public_key):
     query = {'outputs.public_keys': [public_key],
              'asset.id': asset_id}
@@ -350,7 +350,7 @@ def get_asset_tokens_for_public_key(conn, asset_id, public_key):
     return cursor
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def store_abci_chain(conn, height, chain_id, is_synced=True):
     return conn.run(
         conn.collection('abci_chains').replace_one(
@@ -362,14 +362,14 @@ def store_abci_chain(conn, height, chain_id, is_synced=True):
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def delete_abci_chain(conn, height):
     return conn.run(
         conn.collection('abci_chains').delete_many({'height': height})
     )
 
 
-@register_query(LocalMongoDBConnection)
+@register_query(MongoDBConnection)
 def get_latest_abci_chain(conn):
     return conn.run(
         conn.collection('abci_chains')

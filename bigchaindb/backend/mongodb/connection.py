@@ -19,7 +19,12 @@ from bigchaindb.utils import Lazy
 logger = logging.getLogger(__name__)
 
 
-class LocalMongoDBConnection(Connection):
+class MongoDBConnection(Connection):
+    """Connection class for external MongoDB backend.
+    
+    BigchainDB connects to an external MongoDB server.
+    The MongoDB server must be running and accessible.
+    """
 
     def __init__(self, replicaset=None, ssl=None, login=None, password=None,
                  ca_cert=None, certfile=None, keyfile=None,
@@ -76,7 +81,7 @@ class LocalMongoDBConnection(Connection):
             raise OperationError from exc
 
     def _connect(self):
-        """Try to connect to the database.
+        """Try to connect to the external MongoDB database.
 
         Raises:
             :exc:`~ConnectionError`: If the connection to the database

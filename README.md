@@ -21,6 +21,78 @@ so show the latest GitHub release instead.
 
 BigchainDB is the blockchain database. This repository is for _BigchainDB Server_.
 
+## Quick Start with Docker
+
+BigchainDB requires an **external MongoDB** server. The easiest way to run BigchainDB is using Docker Compose:
+
+```bash
+git clone https://github.com/bigchaindb/bigchaindb.git
+cd bigchaindb
+docker-compose up -d
+```
+
+BigchainDB API will be available at `http://localhost:9984/`.
+
+## Docker Image
+
+The BigchainDB Docker image is based on **Ubuntu 22.04** and requires an external MongoDB connection.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BIGCHAINDB_DATABASE_BACKEND` | `mongodb` | Database backend (only `mongodb` is supported) |
+| `BIGCHAINDB_DATABASE_HOST` | `localhost` | MongoDB host address |
+| `BIGCHAINDB_DATABASE_PORT` | `27017` | MongoDB port |
+| `BIGCHAINDB_DATABASE_NAME` | `bigchain` | MongoDB database name |
+| `BIGCHAINDB_SERVER_BIND` | `0.0.0.0:9984` | API server bind address |
+
+### Running with Docker
+
+```bash
+# Start MongoDB first
+docker run -d --name mongodb -p 27017:27017 mongo:4.4
+
+# Run BigchainDB
+docker run -d \
+  --name bigchaindb \
+  -e BIGCHAINDB_DATABASE_HOST=mongodb \
+  -e BIGCHAINDB_DATABASE_PORT=27017 \
+  -e BIGCHAINDB_DATABASE_NAME=bigchain \
+  -p 9984:9984 \
+  --link mongodb:mongodb \
+  bigchaindb/bigchaindb
+```
+
+### Docker Compose Example
+
+```yaml
+version: '3'
+services:
+  mongodb:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  bigchaindb:
+    image: bigchaindb/bigchaindb
+    depends_on:
+      - mongodb
+    environment:
+      BIGCHAINDB_DATABASE_BACKEND: mongodb
+      BIGCHAINDB_DATABASE_HOST: mongodb
+      BIGCHAINDB_DATABASE_PORT: 27017
+      BIGCHAINDB_DATABASE_NAME: bigchain
+      BIGCHAINDB_SERVER_BIND: 0.0.0.0:9984
+    ports:
+      - "9984:9984"
+
+volumes:
+  mongodb_data:
+```
+
 ## The Basics
 
 * [Try the Quickstart](https://docs.bigchaindb.com/projects/server/en/latest/quickstart.html)
@@ -52,6 +124,42 @@ There are also other commands you can execute:
 * `make reset`: Stop and REMOVE all containers. WARNING: you will LOSE all data stored in BigchainDB.
 
 To view all commands available, run `make`.
+
+## Local Development Setup
+
+### Prerequisites
+
+- Python 3.8+ (Python 3.11 recommended)
+- MongoDB 4.4+
+- Tendermint v0.31.5
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/bigchaindb/bigchaindb.git
+cd bigchaindb
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -e .[dev]
+
+# Configure BigchainDB
+bigchaindb -y configure mongodb
+```
+
+### Running Locally
+
+```bash
+# Start MongoDB
+mongod --dbpath /path/to/data
+
+# In another terminal, start BigchainDB
+bigchaindb start
+```
 
 ## Links for Everyone
 

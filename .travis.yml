@@ -30,11 +30,11 @@ matrix:
   include:
   - python: 3.6
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
   - python: 3.6
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
     - BIGCHAINDB_CI_ABCI=enable
   - python: 3.6
@@ -42,11 +42,11 @@ matrix:
     - BIGCHAINDB_ACCEPTANCE_TEST=enable
   - python: 3.7
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
   - python: 3.7
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
     - BIGCHAINDB_CI_ABCI=enable
   - python: 3.7
@@ -54,11 +54,11 @@ matrix:
     - BIGCHAINDB_ACCEPTANCE_TEST=enable
   - python: 3.8
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
   - python: 3.8
     env:
-    - BIGCHAINDB_DATABASE_BACKEND=localmongodb
+    - BIGCHAINDB_DATABASE_BACKEND=mongodb
     - BIGCHAINDB_DATABASE_SSL=
     - BIGCHAINDB_CI_ABCI=enable
   - python: 3.8

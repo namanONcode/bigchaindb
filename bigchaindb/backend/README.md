@@ -14,7 +14,7 @@ Code is Apache-2.0 and docs are CC-BY-4.0
 - [`schema.py`](./schema.py): Database setup and schema-related interfaces, dispatched through
   single-dispatch
 
-Built-in implementations (e.g. [MongoDB's](./localmongodb)) are provided in sub-directories and
+Built-in implementations (e.g. [MongoDB's](./mongodb)) are provided in sub-directories and
 have their connection type's location exposed as `BACKENDS` in [`connection.py`](./connection.py).
 
 ## Single-Dispatched Interfaces

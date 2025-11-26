@@ -69,9 +69,9 @@ def test_post_create_transaction_endpoint(b, client):
 def test_post_create_transaction_with_language(b, client, nested, language,
                                                expected_status_code):
     from bigchaindb.models import Transaction
-    from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+    from bigchaindb.backend.mongodb.connection import MongoDBConnection
 
-    if isinstance(b.connection, LocalMongoDBConnection):
+    if isinstance(b.connection, MongoDBConnection):
         user_priv, user_pub = crypto.generate_key_pair()
         lang_obj = {'language': language}
 
@@ -107,10 +107,10 @@ def test_post_create_transaction_with_language(b, client, nested, language,
 def test_post_create_transaction_with_invalid_key(b, client, field, value,
                                                   err_key, expected_status_code):
     from bigchaindb.models import Transaction
-    from bigchaindb.backend.localmongodb.connection import LocalMongoDBConnection
+    from bigchaindb.backend.mongodb.connection import MongoDBConnection
     user_priv, user_pub = crypto.generate_key_pair()
 
-    if isinstance(b.connection, LocalMongoDBConnection):
+    if isinstance(b.connection, MongoDBConnection):
         if field == 'asset':
             tx = Transaction.create([user_pub], [([user_pub], 1)],
                                     asset=value)
