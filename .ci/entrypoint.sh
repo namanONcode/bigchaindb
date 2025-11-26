@@ -1,75 +1,53 @@
 #!/bin/bash
-# BigchainDB Entrypoint (Fedora + pyenv + embedded MongoDB)
+# BigchainDB Entrypoint (localmongodb backend only)
 # SPDX-License-Identifier: Apache-2.0
+#
+# This entrypoint ensures BigchainDB ALWAYS uses the localmongodb backend
+# by removing any stale config files and regenerating fresh config at startup.
 
 set -e
 
-echo "===== BigchainDB + Embedded MongoDB Entrypoint ====="
+echo "===== BigchainDB Entrypoint (localmongodb) ====="
 
 # --------------------------------------------------------
-# 1. Prepare MongoDB data directory
+# 1. Remove all existing config files to prevent stale configs
+#    This ensures BigchainDB won't read old configs with "mongodb" backend
+# --------------------------------------------------------
+echo "[INFO] Removing any stale BigchainDB config files..."
+rm -f /root/.bigchaindb
+rm -f /usr/src/app/bigchaindb/.bigchaindb
+rm -f /data/.bigchaindb
+rm -f "$HOME/.bigchaindb"
+echo "[INFO] Stale config files removed (if any existed)"
+
+# --------------------------------------------------------
+# 2. Prepare data directory for localmongodb
+#    Note: localmongodb backend uses MongoDB internally but does NOT
+#    require a separate MongoDB server on port 27017
 # --------------------------------------------------------
 mkdir -p /data/db
 chmod -R 777 /data || true
-echo "[INFO] MongoDB data directory prepared at /data/db"
-
-
-# --------------------------------------------------------
-# 2. Start MongoDB (if available)
-# --------------------------------------------------------
-echo "[INFO] Starting embedded MongoDB..."
-
-if command -v mongod >/dev/null 2>&1; then
-    mongod --dbpath /data/db --bind_ip_all --quiet &
-    MONGO_PID=$!
-else
-    echo "[WARNING] mongod is NOT installed – BigchainDB will still work using localmongodb backend."
-    MONGO_PID=""
-fi
-
+echo "[INFO] Data directory prepared at /data"
 
 # --------------------------------------------------------
-# 3. Mongo readiness check (only if mongod exists)
+# 3. Set up Python environment
 # --------------------------------------------------------
-if [ -n "$MONGO_PID" ]; then
-    echo -n "[INFO] Checking if MongoDB is ready"
-
-    for i in {1..30}; do
-        if command -v mongo >/dev/null 2>&1; then
-            if mongo --eval "db.adminCommand('ping')" >/dev/null 2>&1; then
-                echo " — READY"
-                break
-            fi
-        fi
-
-        echo -n "."
-        sleep 1
-    done
-
-    if ! ps -p "$MONGO_PID" >/dev/null; then
-        echo "[ERROR] MongoDB failed to start!"
-        exit 1
-    fi
-else
-    echo "[INFO] Skipping MongoDB readiness check (no mongod installed)"
-fi
-
-
-# --------------------------------------------------------
-# 4. Install BigchainDB in editable mode (fix PATH + pyenv)
-# --------------------------------------------------------
-echo "[INFO] Installing BigchainDB in editable mode..."
-pip install -q -e /usr/src/app || {
-    echo "[WARNING] Editable install failed, using normal installation"
-    pip install -q /usr/src/app
-}
-
 export PYTHONPATH="/usr/src/app:$PYTHONPATH"
-echo "[INFO] PYTHONPATH updated: $PYTHONPATH"
-
+echo "[INFO] PYTHONPATH: $PYTHONPATH"
 
 # --------------------------------------------------------
-# 5. Optional ABCI testing mode
+# 4. Generate fresh BigchainDB config with localmongodb backend
+#    The -y flag auto-accepts defaults, ensuring no prompts
+#    Config is written to the path specified by BIGCHAINDB_CONFIG_PATH
+# --------------------------------------------------------
+echo "[INFO] Generating fresh BigchainDB config with localmongodb backend..."
+export BIGCHAINDB_CONFIG_PATH="${BIGCHAINDB_CONFIG_PATH:-/data/.bigchaindb}"
+bigchaindb -y configure localmongodb
+echo "[INFO] Config generated at: $BIGCHAINDB_CONFIG_PATH"
+echo "[INFO] Using backend: localmongodb"
+
+# --------------------------------------------------------
+# 5. Optional ABCI testing mode (for CI)
 # --------------------------------------------------------
 if [ "$BIGCHAINDB_CI_ABCI" = "enable" ]; then
     echo "[INFO] ABCI CI mode requested — pausing for CI"
@@ -77,9 +55,12 @@ if [ "$BIGCHAINDB_CI_ABCI" = "enable" ]; then
     exit 0
 fi
 
-
 # --------------------------------------------------------
-# 6. Start BigchainDB node (backend = localmongodb)
+# 6. Start BigchainDB node
+#    The localmongodb backend handles database internally
+#    No external MongoDB connection to port 27017 needed
 # --------------------------------------------------------
-echo "[INFO] Starting BigchainDB (localmongodb backend)"
+echo "[INFO] Starting BigchainDB node..."
+echo "[INFO] MongoDB disabled (not needed for localmongodb backend)"
+echo "[INFO] BigchainDB will start on ${BIGCHAINDB_SERVER_BIND:-0.0.0.0:9984}"
 exec bigchaindb -l DEBUG start
