@@ -1,41 +1,49 @@
 #!/bin/bash
-# Copyright © 
-# BigchainDB Docker Entrypoint (Fedora + pyenv + MongoDB Embedded)
+# BigchainDB Entrypoint (Fedora + pyenv + embedded MongoDB)
 # SPDX-License-Identifier: Apache-2.0
 
 set -e -x
 
 # --------------------------------------------------------
-# 1. Start MongoDB for localmongodb backend
+# 1. Prepare MongoDB runtime directory
 # --------------------------------------------------------
 mkdir -p /data/db
 chmod -R 777 /data || true
 
-# Start MongoDB in background
-mongod --dbpath /data/db --bind_ip_all --nojournal --noprealloc &
+# --------------------------------------------------------
+# 2. Start MongoDB (required by localmongodb backend)
+# --------------------------------------------------------
+mongod \
+    --dbpath /data/db \
+    --bind_ip_all \
+    --nojournal \
+    --noprealloc \
+    --quiet &
 
-# Allow MongoDB time to initialize
+# Wait for mongod to accept connections
 sleep 3
 
 
 # --------------------------------------------------------
-# 2. Reinstall BigchainDB in editable mode (SELinux fix)
+# 3. Ensure BigchainDB code is loaded in editable mode
+#    (Fixes SELinux + mounted volumes + pyenv quirks)
 # --------------------------------------------------------
 pip install -q -e /usr/src/app
 
-# Add app source directory to Python PATH
-export PYTHONPATH=/usr/src/app:${PYTHONPATH}
+export PYTHONPATH="/usr/src/app:${PYTHONPATH}"
 
 
 # --------------------------------------------------------
-# 3. Optional ABCI mode
+# 4. Optional: CI ABCI test mode
 # --------------------------------------------------------
-if [[ ${BIGCHAINDB_CI_ABCI} == 'enable' ]]; then
-    echo "ABCI CI mode enabled — sleeping..."
+if [[ "${BIGCHAINDB_CI_ABCI}" == "enable" ]]; then
+    echo "ABCI CI mode enabled — holding container for 1 hour..."
     sleep 3600
-else
-    # --------------------------------------------------------
-    # 4. Start BigchainDB Node
-    # --------------------------------------------------------
-    bigchaindb -l DEBUG start
+    exit 0
 fi
+
+
+# --------------------------------------------------------
+# 5. Start BigchainDB node (localmongodb backend)
+# --------------------------------------------------------
+exec bigchaindb -l DEBUG start
