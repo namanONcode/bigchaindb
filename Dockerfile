@@ -14,44 +14,51 @@ RUN apt-get update && apt-get install -y \
     curl netcat-openbsd tar \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Tendermint v0.31.5 (correct URL + unzip format)
-RUN apt-get update && apt-get install -y unzip && \
-    curl -L https://github.com/tendermint/tendermint/releases/download/v0.31.5/tendermint_v0.31.5_linux_amd64.zip \
-    -o /tmp/tendermint.zip && \
-    unzip /tmp/tendermint.zip -d /tmp/tm && \
-    mv /tmp/tm/tendermint /usr/local/bin/tendermint && \
+# -----------------------------------------
+# Install Tendermint v0.22.8 (BigchainDB-compatible)
+# -----------------------------------------
+RUN curl -L https://github.com/tendermint/tendermint/releases/download/v0.22.8/tendermint_0.22.8_linux_amd64.tar.gz \
+    -o /tmp/tm.tar.gz && \
+    tar -xvf /tmp/tm.tar.gz -C /tmp && \
+    mv /tmp/tendermint /usr/local/bin/tendermint && \
     chmod +x /usr/local/bin/tendermint && \
-    rm -rf /tmp/tendermint.zip /tmp/tm
+    rm -rf /tmp/tm.tar.gz /tmp/tendermint
 
-
-# -------------------------------
+# -----------------------------------------
 # BigchainDB source
-# -------------------------------
+# -----------------------------------------
 WORKDIR /usr/src/app
 COPY . /usr/src/app
 
-# Install BigchainDB
+# Install BigchainDB + dependencies
 RUN python3 -m pip install --upgrade pip setuptools wheel && \
     python3 -m pip install -e .
 
 ENV PYTHONPATH=/usr/src/app
 
-# -------------------------------
-# Default environment vars
-# -------------------------------
+# -----------------------------------------
+# BigchainDB environment vars
+# -----------------------------------------
 ENV PYTHONUNBUFFERED=0
 ENV BIGCHAINDB_DATABASE_BACKEND=mongodb
 ENV BIGCHAINDB_DATABASE_HOST=localhost
 ENV BIGCHAINDB_DATABASE_PORT=27017
 ENV BIGCHAINDB_DATABASE_NAME=bigchain
 ENV BIGCHAINDB_SERVER_BIND=0.0.0.0:9984
+
+# Tendermint (ABCI) settings
 ENV BIGCHAINDB_TENDERMINT_HOST=tendermint
 ENV BIGCHAINDB_TENDERMINT_PORT=26657
+ENV BIGCHAINDB_ABCI_HOST=0.0.0.0
+ENV BIGCHAINDB_ABCI_PORT=26658
 
+# -----------------------------------------
+# Entrypoint
+# -----------------------------------------
 COPY .ci/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose relevant ports
+# Expose required ports
 EXPOSE 9984 26657 26658
 
 ENTRYPOINT ["/entrypoint.sh"]
