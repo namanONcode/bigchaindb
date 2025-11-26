@@ -34,7 +34,7 @@ COPY . /usr/src/app
 RUN pip3 install --upgrade pip setuptools wheel && \
     pip3 install -e .
 
-ENV PYTHONPATH=/usr/src/app:$PYTHONPATH
+ENV PYTHONPATH=/usr/src/app
 
 # BigchainDB environment configuration
 # Requires external MongoDB server - configure via environment variables
