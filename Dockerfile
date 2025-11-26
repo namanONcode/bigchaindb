@@ -14,15 +14,15 @@ RUN apt-get update && apt-get install -y \
     curl netcat-openbsd tar \
     && rm -rf /var/lib/apt/lists/*
 
-# -------------------------------
-# Install Tendermint v0.31.5
-# -------------------------------
-RUN curl -L https://github.com/tendermint/tendermint/releases/download/v0.31.5/tendermint_0.31.5_linux_amd64.tar.gz \
-    -o /tmp/tm.tar.gz && \
-    tar -xvf /tmp/tm.tar.gz && \
-    mv tendermint /usr/local/bin/tendermint && \
+# Install Tendermint v0.31.5 (correct URL + unzip format)
+RUN apt-get update && apt-get install -y unzip && \
+    curl -L https://github.com/tendermint/tendermint/releases/download/v0.31.5/tendermint_v0.31.5_linux_amd64.zip \
+    -o /tmp/tendermint.zip && \
+    unzip /tmp/tendermint.zip -d /tmp/tm && \
+    mv /tmp/tm/tendermint /usr/local/bin/tendermint && \
     chmod +x /usr/local/bin/tendermint && \
-    rm /tmp/tm.tar.gz
+    rm -rf /tmp/tendermint.zip /tmp/tm
+
 
 # -------------------------------
 # BigchainDB source
