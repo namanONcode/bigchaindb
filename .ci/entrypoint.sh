@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "===== BigchainDB Entrypoint (External MongoDB + Tendermint) ====="
+echo "===== BigchainDB Entrypoint (External MongoDB + External Tendermint) ====="
 
 # -----------------------------
 # 1. Read Environment Variables
@@ -14,12 +14,8 @@ echo "[INFO] MongoDB Host: $MONGODB_HOST"
 echo "[INFO] MongoDB Port: $MONGODB_PORT"
 echo "[INFO] MongoDB DB:   $MONGODB_NAME"
 
-# Tendermint ABCI will always be local
-TENDERMINT_RPC="127.0.0.1:26657"
-TENDERMINT_ABCI="127.0.0.1:26658"
-
-echo "[INFO] Tendermint RPC will bind at $TENDERMINT_RPC"
-echo "[INFO] Tendermint ABCI will bind at $TENDERMINT_ABCI"
+echo "[INFO] Tendermint RPC: ${BIGCHAINDB_TENDERMINT_HOST}:${BIGCHAINDB_TENDERMINT_PORT}"
+echo "[INFO] ABCI will connect from BigchainDB → Tendermint"
 
 # -----------------------------
 # 2. Python PATH
@@ -38,25 +34,12 @@ done
 echo "[INFO] MongoDB is reachable."
 
 # -----------------------------
-# 4. Start Tendermint
+# 4. DO NOT START TENDERMINT HERE
 # -----------------------------
-echo "[INFO] Initializing Tendermint..."
-tendermint init --home /tendermint >/dev/null
-
-echo "[INFO] Starting Tendermint node..."
-tendermint node \
-  --home=/tendermint \
-  --proxy_app="tcp://127.0.0.1:26658" \
-  --rpc.laddr="tcp://0.0.0.0:26657" &
-  
-sleep 3
+echo "[INFO] Tendermint runs in its own container — skipping internal start."
 
 # -----------------------------
-# 5. Start BigchainDB ABCI
+# 5. Start BigchainDB ABCI + API
 # -----------------------------
-echo "[INFO] Starting BigchainDB node (ABCI on 127.0.0.1:26658)..."
-
-# BigchainDB must only bind locally (inside pod)
-export BIGCHAINDB_SERVER_BIND="127.0.0.1:9984"
-
+echo "[INFO] Starting BigchainDB..."
 exec bigchaindb start
